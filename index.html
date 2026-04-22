@@ -54,7 +54,6 @@
     animation:squarePulse 2.8s ease-out infinite;
   }
   @keyframes squarePulse {
-    /* Добавлено rotate(45deg), чтобы квадраты выглядели как ромбы */
     0% { transform:scale(0.8) rotate(45deg); opacity:0.8; }
     100% { transform:scale(2.2) rotate(45deg); opacity:0; }
   }
@@ -110,7 +109,6 @@
 <div class="fox-header">
   <div class="fox-wrap">
     <div class="gold-pulse"></div>
-    <!-- 🖼️ Загрузите файл golden_fox.png в корень репозитория Сайта 2 -->
     <img src="golden_fox.png" alt="Золотой Лис" class="fox-img">
   </div>
   <h2>📊 Результаты тестов</h2>
@@ -139,11 +137,10 @@ async function loadData() {
     const res = await fetch(SCRIPT_URL);
     const data = await res.json();
     
-    // Очищаем старые строки (кроме заголовка)
+    // Очищаем старые строки (кроме заголовка таблицы)
     while(table.rows.length > 1) table.deleteRow(1);
     
     if (!data || !data.length) {
-      // ✅ Изменённый текст по вашему запросу
       loader.innerHTML = `<div class="empty-state">
         <img src="golden_fox.png" alt="Лис" class="fox-mini">
         <div>Пока нет результатов.<br><b>Пройдите тест в Лисьем саду</b></div>
@@ -151,8 +148,15 @@ async function loadData() {
       return;
     }
 
+    // ✅ ФИЛЬТРУЕМ: пропускаем строку с заголовками ("Дата", "ФИО" и т.д.)
+    const validRows = data.filter(row => {
+      const firstCell = String(row[0] || '').toLowerCase();
+      // Пропускаем, если первая ячейка содержит слово "дата" (заголовок)
+      return !firstCell.includes('дата') && row.length >= 5;
+    });
+
     // Новые сверху
-    data.reverse().forEach(row => {
+    validRows.reverse().forEach(row => {
       const [date, fio, email, testTitle, score, answersJson] = row;
       let errorsHtml = '<span class="ok-text">✅ Без ошибок</span>';
       
@@ -180,7 +184,6 @@ async function loadData() {
     loader.textContent = '❌ Ошибка загрузки. Проверьте подключение и ключ.';
   }
 }
-// Загружаем при открытии
 loadData();
 </script>
 </body></html>
