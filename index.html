@@ -3,11 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Результаты тестов — Лисий Сад</title>
+<title>Результаты — Лисий Сад</title>
 <style>
-  :root { --bg:#0f0a1a; --card:rgba(20,15,30,0.92); --border:rgba(255,170,102,0.25); --text:#e8e0f0; --accent:#ffaa66; }
+  :root { --bg:#0f0a1a; --card:rgba(20,15,30,0.92); --border:rgba(255,170,102,0.25); --text:#e8e0f0; --accent:#ffaa66; --gold:#ffd77a; --gold-glow:0 0 20px rgba(255,215,122,0.5), 0 0 40px rgba(255,170,102,0.3); }
   body { font-family:'Comfortaa',system-ui,sans-serif; background:var(--bg); color:var(--text); padding:20px; margin:0; }
   h2 { text-align:center; color:var(--accent); margin-bottom:20px; }
+  
+  /* 🦊 ЗОЛОТОЙ ЛИС С СИЯНИЕМ */
+  .fox-header { text-align:center; margin:0 0 25px; position:relative; }
+  .fox-wrap { position:relative; width:110px; height:110px; margin:0 auto 12px; display:flex; justify-content:center; align-items:center; }
+  .fox-img { width:100%; height:auto; position:relative; z-index:2; filter:drop-shadow(0 4px 12px rgba(255,215,122,0.6)); }
+  .gold-pulse {
+    position:absolute; inset:-25px; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,215,122,0.4) 0%, rgba(255,170,102,0.2) 40%, transparent 70%);
+    box-shadow:var(--gold-glow);
+    z-index:1; pointer-events:none; animation:goldPulse 2.8s ease-out infinite;
+  }
+  @keyframes goldPulse {
+    0% { transform:scale(0.75); opacity:0.7; }
+    50% { transform:scale(1.3); opacity:0.25; }
+    100% { transform:scale(1.8); opacity:0; }
+  }
+  .fox-header h2 { margin:8px 0 4px; font-size:1.8rem; text-shadow:0 0 12px var(--gold); }
+  .fox-header p { color:var(--text-muted); font-style:italic; margin:0; }
+  
   .table-wrap { overflow-x:auto; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px; }
   table { width:100%; border-collapse:collapse; min-width:600px; }
   th, td { padding:12px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:left; vertical-align:top; }
@@ -15,15 +34,26 @@
   tr:hover { background:rgba(255,255,255,0.05); }
   .err-box { background:rgba(231,76,60,0.15); padding:8px; border-radius:6px; font-size:0.9em; margin:4px 0; border-left:3px solid #e74c3c; }
   .ok-text { color:#2ecc71; font-weight:500; }
-  .err-text { color:#e74c3c; font-weight:500; }
   .loading { text-align:center; padding:40px; color:var(--text-muted); }
   .refresh-btn { display:block; margin:20px auto; padding:10px 20px; background:var(--accent); color:#0f0a1a; border:none; border-radius:10px; cursor:pointer; font-weight:bold; }
   .refresh-btn:hover { opacity:0.9; }
+  .empty-state { text-align:center; padding:30px 20px; color:var(--text-muted); }
+  .fox-mini { width:60px; margin-bottom:12px; opacity:0.7; filter:drop-shadow(0 0 8px rgba(255,215,122,0.4)); }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-<h2>📊 Результаты тестов</h2>
+
+<div class="fox-header">
+  <div class="fox-wrap">
+    <div class="gold-pulse"></div>
+    <!-- ✅ Замените src на путь к вашему золотому лису -->
+    <img src="golden_fox.png" alt="Золотой Лис" class="fox-img">
+  </div>
+  <h2>📊 Результаты тестов</h2>
+  <p>Лисий Сад • Хранитель знаний</p>
+</div>
+
 <button class="refresh-btn" onclick="loadData()">🔄 Обновить</button>
 <div class="table-wrap">
   <table>
@@ -33,7 +63,6 @@
 <div id="loader" class="loading">Загрузка данных...</div>
 
 <script>
-// ⚠️ Ваш URL + секретный ключ
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmbw_-MYraqUsSp452jWfdf1tPOX7TNrGR_Gm8JcBO_DGzODjv35ybwq9nIGDqK4TWDw/exec?key=fox_secret_2026';
 
 async function loadData() {
@@ -47,15 +76,17 @@ async function loadData() {
     const res = await fetch(SCRIPT_URL);
     const data = await res.json();
     
-    // Очищаем старые строки (кроме заголовка)
     while(table.rows.length > 1) table.deleteRow(1);
     
     if (!data || !data.length) {
-      loader.textContent = 'Пока нет результатов. Пройдите тест на Сайте 1.';
+      // ✅ ИЗМЕНЁННЫЙ ТЕКСТ:
+      loader.innerHTML = `<div class="empty-state">
+        <img src="golden_fox.png" alt="Лис" class="fox-mini">
+        <div>Пока нет результатов.<br><b>Пройдите тест в Лисьем саду</b></div>
+      </div>`;
       return;
     }
 
-    // Новые сверху
     data.reverse().forEach(row => {
       const [date, fio, email, testTitle, score, answersJson] = row;
       let errorsHtml = '<span class="ok-text">✅ Без ошибок</span>';
@@ -65,9 +96,7 @@ async function loadData() {
         const wrong = answers.filter(a => !a.is_correct);
         if (wrong.length) {
           errorsHtml = wrong.map(a => 
-            `<div class="err-box">
-              ❌ В${a.num}: «${a.user_answer}» → верно: «${a.correct_answer}»
-            </div>`
+            `<div class="err-box">❌ В${a.num}: «${a.user_answer}» → верно: «${a.correct_answer}»</div>`
           ).join('');
         }
       } catch(e) { errorsHtml = '<i>Формат данных изменён</i>'; }
@@ -86,7 +115,6 @@ async function loadData() {
     loader.textContent = '❌ Ошибка загрузки. Проверьте подключение и ключ.';
   }
 }
-// Загружаем при открытии страницы
 loadData();
 </script>
 </body></html>
