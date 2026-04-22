@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Результаты тестов — Лисий Сад</title>
+<style>
+  :root { --bg:#0f0a1a; --card:rgba(20,15,30,0.92); --border:rgba(255,170,102,0.25); --text:#e8e0f0; --accent:#ffaa66; }
+  body { font-family:'Comfortaa',system-ui,sans-serif; background:var(--bg); color:var(--text); padding:20px; margin:0; }
+  h2 { text-align:center; color:var(--accent); margin-bottom:20px; }
+  .table-wrap { overflow-x:auto; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:10px; }
+  table { width:100%; border-collapse:collapse; min-width:600px; }
+  th, td { padding:12px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:left; vertical-align:top; }
+  th { background:rgba(255,170,102,0.15); color:var(--accent); position:sticky; top:0; }
+  tr:hover { background:rgba(255,255,255,0.05); }
+  .err-box { background:rgba(231,76,60,0.15); padding:8px; border-radius:6px; font-size:0.9em; margin:4px 0; border-left:3px solid #e74c3c; }
+  .ok-text { color:#2ecc71; font-weight:500; }
+  .err-text { color:#e74c3c; font-weight:500; }
+  .loading { text-align:center; padding:40px; color:var(--text-muted); }
+  .refresh-btn { display:block; margin:20px auto; padding:10px 20px; background:var(--accent); color:#0f0a1a; border:none; border-radius:10px; cursor:pointer; font-weight:bold; }
+  .refresh-btn:hover { opacity:0.9; }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<h2>📊 Результаты тестов</h2>
+<button class="refresh-btn" onclick="loadData()">🔄 Обновить</button>
+<div class="table-wrap">
+  <table>
+    <tr><th>Дата</th><th>ФИО</th><th>Тест</th><th>Балл</th><th>Ошибки</th></tr>
+  </table>
+</div>
+<div id="loader" class="loading">Загрузка данных...</div>
+
+<script>
+// ⚠️ Ваш URL + секретный ключ
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmbw_-MYraqUsSp452jWfdf1tPOX7TNrGR_Gm8JcBO_DGzODjv35ybwq9nIGDqK4TWDw/exec?key=fox_secret_2026';
+
+async function loadData() {
+  const loader = document.getElementById('loader');
+  const table = document.querySelector('table');
+  
+  loader.textContent = 'Загрузка...';
+  loader.style.display = 'block';
+  
+  try {
+    const res = await fetch(SCRIPT_URL);
+    const data = await res.json();
+    
+    // Очищаем старые строки (кроме заголовка)
+    while(table.rows.length > 1) table.deleteRow(1);
+    
+    if (!data || !data.length) {
+      loader.textContent = 'Пока нет результатов. Пройдите тест на Сайте 1.';
+      return;
+    }
+
+    // Новые сверху
+    data.reverse().forEach(row => {
+      const [date, fio, email, testTitle, score, answersJson] = row;
+      let errorsHtml = '<span class="ok-text">✅ Без ошибок</span>';
+      
+      try {
+        const answers = JSON.parse(answersJson);
+        const wrong = answers.filter(a => !a.is_correct);
+        if (wrong.length) {
+          errorsHtml = wrong.map(a => 
+            `<div class="err-box">
+              ❌ В${a.num}: «${a.user_answer}» → верно: «${a.correct_answer}»
+            </div>`
+          ).join('');
+        }
+      } catch(e) { errorsHtml = '<i>Формат данных изменён</i>'; }
+
+      table.innerHTML += `<tr>
+        <td>${new Date(date).toLocaleString('ru-RU')}</td>
+        <td><b>${fio}</b></td>
+        <td>${testTitle}</td>
+        <td>${score}</td>
+        <td>${errorsHtml}</td>
+      </tr>`;
+    });
+    loader.style.display = 'none';
+  } catch(e) {
+    console.error(e);
+    loader.textContent = '❌ Ошибка загрузки. Проверьте подключение и ключ.';
+  }
+}
+// Загружаем при открытии страницы
+loadData();
+</script>
+</body></html>
