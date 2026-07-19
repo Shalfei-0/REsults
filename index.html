@@ -3,187 +3,264 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Результаты — Лисий Сад</title>
+<title>Архив Результатов | Лисий Сад</title>
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Библиотеки для графиков -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js"></script>
 <style>
-  :root { 
-    --bg:#0f0a1a; 
-    --card:rgba(20,15,30,0.92); 
-    --border:rgba(255,170,102,0.25); 
-    --text:#e8e0f0; 
-    --accent:#ffaa66; 
-    --gold:#ffd77a; 
-    --text-muted:#a89bc2;
+  :root {
+    --bg: #06060b; --bg2: #0c0c14;
+    --bg-panel: rgba(18, 18, 28, 0.75); --border-subtle: rgba(255, 255, 255, 0.06);
+    --accent: #ff8c32; --accent-glow: 0 0 30px rgba(255, 140, 50, 0.45);
+    --text-primary: #e8e8f0; --text-secondary: rgba(232, 232, 240, 0.6);
+    --font-main: 'Nunito', sans-serif; --font-heading: 'Comfortaa', cursive;
   }
-  * { box-sizing:border-box; }
-  body { 
-    font-family:'Comfortaa',system-ui,sans-serif; 
-    background:var(--bg); 
-    color:var(--text); 
-    padding:20px; 
-    margin:0; 
-    min-height:100vh;
-  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); background-image: radial-gradient(circle at 50% 0%, var(--bg2) 0%, var(--bg) 60%); color: var(--text-primary); font-family: var(--font-main); min-height: 100vh; padding: 40px 20px; }
+  .container { max-width: 1000px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 40px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+  .fox-logo { width: 120px; height: auto; filter: drop-shadow(0 0 15px var(--accent-glow)); }
+  h1 { font-family: var(--font-heading); font-size: 2.5rem; background: linear-gradient(135deg, #fff 10%, var(--accent) 50%, #ffb380 90%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { color: var(--text-secondary); font-size: 1.1rem; }
+  .controls { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
+  .btn { padding: 10px 20px; border-radius: 30px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; font-family: var(--font-main); font-weight: 700; transition: 0.3s; }
+  .btn:hover { background: var(--accent); color: #0a0a0f; box-shadow: var(--accent-glow); }
   
-  /* 🦊 ШАПКА С ЗОЛОТЫМ ЛИСОМ */
-  .fox-header { text-align:center; margin:0 0 25px; position:relative; }
-  .fox-wrap { 
-    position:relative; 
-    width:110px; 
-    height:110px; 
-    margin:0 auto 12px; 
-    display:flex; 
-    justify-content:center; 
-    align-items:center; 
-  }
-  .fox-img { 
-    width:100%; 
-    height:auto; 
-    position:relative; 
-    z-index:2; 
-    filter:drop-shadow(0 4px 12px rgba(255,215,122,0.6)); 
-  }
-  /* ✅ КВАДРАТНОЕ СИЯНИЕ (Повёрнуто на 45 градусов) */
-  .gold-pulse {
-    position:absolute; 
-    inset:0; 
-    background:rgba(255,215,122,0.12); 
-    border:1.5px solid rgba(255,215,122,0.5); 
-    box-shadow:0 0 15px rgba(255,215,122,0.3), inset 0 0 8px rgba(255,215,122,0.15); 
-    z-index:1; 
-    pointer-events:none; 
-    animation:squarePulse 2.8s ease-out infinite;
-  }
-  @keyframes squarePulse {
-    0% { transform:scale(0.8) rotate(45deg); opacity:0.8; }
-    100% { transform:scale(2.2) rotate(45deg); opacity:0; }
-  }
-  .fox-header h2 { 
-    margin:8px 0 4px; 
-    font-size:1.8rem; 
-    text-shadow:0 0 12px var(--gold); 
-    color:var(--accent); 
-  }
-  .fox-header p { color:var(--text-muted); font-style:italic; margin:0; }
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+  .card { background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 20px; backdrop-filter: blur(10px); transition: 0.3s; }
+  .card:hover { border-color: var(--accent); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+  .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-subtle); }
+  .test-title { font-family: var(--font-heading); color: var(--accent); font-size: 1.1rem; }
+  .test-score { font-weight: 700; background: rgba(255,140,50,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.9rem; }
+  .info-row { margin-bottom: 8px; font-size: 0.95rem; }
+  .info-label { color: var(--text-secondary); margin-right: 5px; }
+  .stats-btn { margin-top: 15px; background: rgba(255,140,50,0.1); border: 1px solid var(--accent); color: var(--accent); padding: 10px 15px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: 700; transition: 0.3s; }
+  .stats-btn:hover { background: var(--accent); color: #0a0a0f; }
   
-  /* 📊 ТАБЛИЦА */
-  .table-wrap { 
-    overflow-x:auto; 
-    background:var(--card); 
-    border:1px solid var(--border); 
-    border-radius:12px; 
-    padding:10px; 
-    box-shadow:0 8px 24px rgba(0,0,0,0.3);
-  }
-  table { width:100%; border-collapse:collapse; min-width:600px; }
-  th, td { padding:12px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:left; vertical-align:top; }
-  th { background:rgba(255,170,102,0.15); color:var(--accent); position:sticky; top:0; }
-  tr:hover { background:rgba(255,255,255,0.04); }
-  .err-box { background:rgba(231,76,60,0.12); padding:8px; border-radius:6px; font-size:0.9em; margin:4px 0; border-left:3px solid #e74c3c; }
-  .ok-text { color:#2ecc71; font-weight:500; }
-  .loading { text-align:center; padding:40px; color:var(--text-muted); transition:0.3s; }
-  .refresh-btn { 
-    display:block; 
-    margin:20px auto; 
-    padding:10px 20px; 
-    background:var(--accent); 
-    color:#0f0a1a; 
-    border:none; 
-    border-radius:10px; 
-    cursor:pointer; 
-    font-weight:bold; 
-    transition:0.2s;
-  }
-  .refresh-btn:hover { opacity:0.85; transform:translateY(-2px); }
-  .empty-state { text-align:center; padding:30px 20px; color:var(--text-muted); }
-  .fox-mini { width:50px; margin-bottom:12px; opacity:0.6; filter:drop-shadow(0 0 8px rgba(255,215,122,0.3)); }
-  
-  @media(max-width:600px) {
-    th, td { padding:10px 8px; font-size:0.9rem; }
-    .fox-header h2 { font-size:1.5rem; }
-  }
+  /* Модальное окно статистики */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.active { display: flex; }
+  .stats-modal { background: var(--bg-panel); border: 1px solid var(--accent); border-radius: 24px; padding: 30px; width: 100%; max-width: 800px; box-shadow: var(--accent-glow); max-height: 90vh; overflow-y: auto; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .modal-header h2 { font-family: var(--font-heading); color: var(--accent); }
+  .close-btn { background: none; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; }
+  .close-btn:hover { color: var(--accent); }
+  .chart-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+  select { background: var(--bg); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 8px 12px; font-family: var(--font-main); cursor: pointer; flex: 1; min-width: 200px; }
+  #chart-container { width: 100%; height: 400px; background: rgba(0,0,0,0.2); border-radius: 16px; margin-bottom: 20px; }
+  .explanation-box { background: rgba(255,140,50,0.05); border-left: 4px solid var(--accent); padding: 15px; border-radius: 0 12px 12px 0; font-size: 0.95rem; line-height: 1.6; }
+  .explanation-box h3 { color: var(--accent); margin-bottom: 8px; font-family: var(--font-heading); }
+  .loader { text-align: center; font-size: 1.2rem; color: var(--text-secondary); margin-top: 50px; }
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
-<div class="fox-header">
-  <div class="fox-wrap">
-    <div class="gold-pulse"></div>
-    <img src="golden_fox.png" alt="Золотой Лис" class="fox-img">
+  <div class="container">
+    <header>
+      <img src="golden_fox.png" alt="Золотая Лиса" class="fox-logo">
+      <h1>📂 Архив Результатов</h1>
+      <p class="sub">Данные из таблиц Лисьего Сада</p>
+    </header>
+    <div class="controls">
+      <button class="btn" onclick="fetchResults()">🔄 Обновить данные</button>
+    </div>
+    <div id="results-container" class="results-grid">
+      <div class="loader">Загрузка данных...</div>
+    </div>
   </div>
-  <h2>📊 Результаты тестов</h2>
-  <p>Лисий Сад • Хранитель знаний</p>
-</div>
 
-<button class="refresh-btn" onclick="loadData()">🔄 Обновить</button>
-<div class="table-wrap">
-  <table>
-    <tr><th>Дата</th><th>ФИО</th><th>Тест</th><th>Балл</th><th>Ошибки</th></tr>
-  </table>
-</div>
-<div id="loader" class="loading">Загрузка данных...</div>
+  <!-- Модальное окно для графиков -->
+  <div class="modal-overlay" id="stats-modal">
+    <div class="stats-modal">
+      <div class="modal-header">
+        <h2 id="modal-title">Статистика ученика</h2>
+        <button class="close-btn" onclick="closeStats()">✕</button>
+      </div>
+      <div class="chart-controls">
+        <select id="chart-type" onchange="renderCurrentChart()">
+          <option value="radar">Радар</option>
+          <option value="waterfall">Водопад</option>
+          <option value="bubble">Пузырьковая</option>
+          <option value="3d_surface">3D-поверхность</option>
+          <option value="area">С областями</option>
+          <option value="pie">Круговая</option>
+          <option value="histogram">Гистограмма</option>
+          <option value="scatter">Рассеяние</option>
+          <option value="bar">Столбчатый</option>
+          <option value="line">Линейный</option>
+          <option value="spaghetti">Спагетти</option>
+          <option value="boxplot">Размаха (Box Plot)</option>
+          <option value="network">Сетевой граф</option>
+          <option value="nightingale">Розочка Найтингейл</option>
+          <option value="streamgraph">Streamgraph</option>
+        </select>
+      </div>
+      <div id="chart-container"></div>
+      <div class="explanation-box">
+        <h3>Пояснение к графику</h3>
+        <p id="chart-explanation"></p>
+      </div>
+    </div>
+  </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmbw_-MYraqUsSp452jWfdf1tPOX7TNrGR_Gm8JcBO_DGzODjv35ybwq9nIGDqK4TWDw/exec?key=fox_secret_2026';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmbw_-MYraqUsSp452jWfdf1tPOX7TNrGR_Gm8JcBO_DGzODjv35ybwq9nIGDqK4TWDw/exec';
+  const SECRET_KEY = 'fox_secret_2026';
+  let currentChart = null;
+  let currentData = null;
+  let allResults = [];
 
-async function loadData() {
-  const loader = document.getElementById('loader');
-  const table = document.querySelector('table');
-  
-  loader.textContent = 'Загрузка...';
-  loader.style.display = 'block';
-  
-  try {
-    const res = await fetch(SCRIPT_URL);
-    const data = await res.json();
-    
-    // Очищаем старые строки (кроме заголовка таблицы)
-    while(table.rows.length > 1) table.deleteRow(1);
-    
-    if (!data || !data.length) {
-      loader.innerHTML = `<div class="empty-state">
-        <img src="golden_fox.png" alt="Лис" class="fox-mini">
-        <div>Пока нет результатов.<br><b>Пройдите тест в Лисьем саду</b></div>
-      </div>`;
-      return;
-    }
+  const explanations = {
+    radar: "Критерии: Точность (% правильных), Полнота (завершенность), Активность, Усердие, Итоговый успех. Показывает многомерный профиль ученика по 5 ключевым метрикам.",
+    waterfall: "Критерии: Накопленный балл. Каждый шаг показывает +1 за правильный ответ. Помогает увидеть, как рос результат по ходу теста.",
+    bubble: "Критерии: Ось X - номер вопроса, Ось Y - правильность (1/0), Размер пузыря - накопленный балл. Показывает вес каждого ответа в общем результате.",
+    '3d_surface': "Критерии: Ось X - вопросы, Ось Y - категории, Ось Z - правильность. 3D-представление показывает плотность правильных ответов в объеме.",
+    area: "Критерии: Накопленный балл по вопросам. Область под графиком визуализирует общий объем усвоенных знаний к концу теста.",
+    pie: "Критерии: Правильные ответы vs Неправильные/Пропущенные. Простая доля успеха в процентах.",
+    histogram: "Критерии: Распределение ответов. Показывает количество правильных (1) и неправильных (0) ответов в целом.",
+    scatter: "Критерии: Ось X - номер вопроса, Ось Y - текущий балл. Точки показывают скачки в успеваемости и стабильность ответов.",
+    bar: "Критерии: Результат по каждому вопросу (1-правильно, 0-неправильно). Детальный разбор каждого шага в тесте.",
+    line: "Критерии: Динамика накопления баллов. Линия тренда показывает темп усвоения материала.",
+    spaghetti: "Критерии: Несколько линий метрик (Правильность, Накопленный %, Сложность). Показывает пересечение разных метрик в одном измерении.",
+    boxplot: "Критерии: Статистика размаха ответов. Показывает медиану, квартили и выбросы в распределении ответов ученика.",
+    network: "Критерии: Связи между вопросами. Узлы - вопросы, связи - последовательность. Помогает увидеть кластеры сложных вопросов.",
+    nightingale: "Критерии: Доля правильных и неправильных ответов. Секторы имеют разный радиус в зависимости от веса категории.",
+    streamgraph: "Критерии: Поток правильных и неправильных ответов на протяжении теста. Показывает ритм и изменение динамики во времени."
+  };
 
-    // ✅ ФИЛЬТРУЕМ: пропускаем строку с заголовками ("Дата", "ФИО" и т.д.)
-    const validRows = data.filter(row => {
-      const firstCell = String(row[0] || '').toLowerCase();
-      // Пропускаем, если первая ячейка содержит слово "дата" (заголовок)
-      return !firstCell.includes('дата') && row.length >= 5;
-    });
-
-    // Новые сверху
-    validRows.reverse().forEach(row => {
-      const [date, fio, email, testTitle, score, answersJson] = row;
-      let errorsHtml = '<span class="ok-text">✅ Без ошибок</span>';
-      
-      try {
-        const answers = JSON.parse(answersJson);
-        const wrong = answers.filter(a => !a.is_correct);
-        if (wrong.length) {
-          errorsHtml = wrong.map(a => 
-            `<div class="err-box">❌ В${a.num}: «${a.user_answer}» → верно: «${a.correct_answer}»</div>`
-          ).join('');
-        }
-      } catch(e) { errorsHtml = '<i>Формат данных изменён</i>'; }
-
-      table.innerHTML += `<tr>
-        <td>${new Date(date).toLocaleString('ru-RU')}</td>
-        <td><b>${fio}</b></td>
-        <td>${testTitle}</td>
-        <td>${score}</td>
-        <td>${errorsHtml}</td>
-      </tr>`;
-    });
-    loader.style.display = 'none';
-  } catch(e) {
-    console.error(e);
-    loader.textContent = '❌ Ошибка загрузки. Проверьте подключение и ключ.';
+  function fetchResults() {
+    const container = document.getElementById('results-container');
+    container.innerHTML = '<div class="loader">Загрузка данных...</div>';
+    fetch(`${SCRIPT_URL}?key=${SECRET_KEY}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error);
+        if (!data || data.length === 0) { container.innerHTML = '<div class="loader">Пока нет результатов 🦊</div>'; return; }
+        allResults = data.sort((a, b) => new Date(b[0]) - new Date(a[0]));
+        
+        container.innerHTML = allResults.map((row, i) => {
+          const [dateStr, fio, email, testTitle, scoreStr, answersJson] = row;
+          const date = new Date(dateStr).toLocaleString('ru-RU');
+          return `
+            <div class="card">
+              <div class="card-header">
+                <span class="test-title">${testTitle || 'Тест'}</span>
+                <span class="test-score">${scoreStr || '0/0'}</span>
+              </div>
+              <div class="info-row"><span class="info-label">👤 Имя:</span> ${fio || 'Аноним'}</div>
+              <div class="info-row"><span class="info-label">✉️ Email:</span> ${email || 'Не указан'}</div>
+              <div class="info-row"><span class="info-label">🕒 Дата:</span> ${date}</div>
+              <button class="stats-btn" onclick="showStats(${i})">📊 Показать статистику</button>
+            </div>
+          `;
+        }).join('');
+      })
+      .catch(err => { container.innerHTML = `<div class="loader" style="color: #ff6b6b;">Ошибка: ${err.message}</div>`; });
   }
-}
-loadData();
+
+  function showStats(index) {
+    currentData = allResults[index];
+    const fio = currentData[1] || 'Ученик';
+    document.getElementById('modal-title').innerText = `Статистика: ${fio}`;
+    document.getElementById('stats-modal').classList.add('active');
+    renderCurrentChart();
+  }
+
+  function closeStats() {
+    document.getElementById('stats-modal').classList.remove('active');
+    if (currentChart) { currentChart.dispose(); currentChart = null; }
+  }
+
+  function renderCurrentChart() {
+    const type = document.getElementById('chart-type').value;
+    document.getElementById('chart-explanation').innerText = explanations[type] || "Описание недоступно.";
+    
+    if (currentChart) currentChart.dispose();
+    const chartDom = document.getElementById('chart-container');
+    currentChart = echarts.init(chartDom, 'dark');
+    
+    let answers = [];
+    try { answers = JSON.parse(currentData[5]); } catch(e) {}
+    if (!Array.isArray(answers)) answers = [];
+
+    // Подготовка данных
+    const correctness = answers.map(a => {
+      if (typeof a === 'object' && a !== null) return a.answer === a.correct ? 1 : 0;
+      return typeof a === 'number' ? (a === 1 ? 1 : 0) : 0;
+    });
+    
+    let cumulative = 0;
+    const cumulativeScore = correctness.map(c => cumulative += c);
+    const totalQuestions = answers.length || 1;
+    const correctCount = correctness.reduce((a, b) => a + b, 0);
+    const incorrectCount = totalQuestions - correctCount;
+    const pct = Math.round((correctCount / totalQuestions) * 100);
+
+    let option = {};
+
+    switch(type) {
+      case 'radar':
+        option = {
+          radar: { indicator: [
+            { name: 'Точность', max: 100 }, { name: 'Полнота', max: 100 }, 
+            { name: 'Активность', max: 100 }, { name: 'Усердие', max: 100 }, { name: 'Успех', max: 100 }
+          ]},
+          series: [{ type: 'radar', data: [{ value: [pct, 100, 80, 90, pct], name: 'Профиль' }], areaStyle: {} }]
+        };
+        break;
+      case 'waterfall':
+        option = { xAxis: { type: 'category', data: correctness.map((_, i) => `Q${i+1}`) }, yAxis: { type: 'value' }, series: [{ type: 'bar', data: cumulativeScore, itemStyle: { color: '#ff8c32' } }] };
+        break;
+      case 'bubble':
+        option = { xAxis: { type: 'value', name: 'Вопрос' }, yAxis: { type: 'value', name: 'Правильность' }, series: [{ type: 'scatter', symbolSize: d => d[2]*10+10, data: correctness.map((c, i) => [i+1, c, cumulativeScore[i]]) }] };
+        break;
+      case '3d_surface':
+        option = { xAxis3D: { type: 'category' }, yAxis3D: { type: 'category' }, zAxis3D: { type: 'value' }, grid3D: {}, series: [{ type: 'surface', data: correctness.map((c, i) => [i, 0, c]) }] };
+        break;
+      case 'area':
+        option = { xAxis: { type: 'category', data: correctness.map((_, i) => `Q${i+1}`) }, yAxis: { type: 'value' }, series: [{ type: 'line', data: cumulativeScore, areaStyle: {} }] };
+        break;
+      case 'pie':
+        option = { series: [{ type: 'pie', radius: '70%', data: [{ value: correctCount, name: 'Правильно' }, { value: incorrectCount, name: 'Неправильно' }] }] };
+        break;
+      case 'histogram':
+        option = { xAxis: { type: 'category', data: ['Неправильно (0)', 'Правильно (1)'] }, yAxis: { type: 'value' }, series: [{ type: 'bar', data: [incorrectCount, correctCount] }] };
+        break;
+      case 'scatter':
+        option = { xAxis: { type: 'value', name: 'Вопрос' }, yAxis: { type: 'value', name: 'Балл' }, series: [{ type: 'scatter', data: correctness.map((c, i) => [i+1, cumulativeScore[i]]) }] };
+        break;
+      case 'bar':
+        option = { xAxis: { type: 'category', data: correctness.map((_, i) => `Q${i+1}`) }, yAxis: { type: 'value' }, series: [{ type: 'bar', data: correctness, itemStyle: { color: '#64b5f6' } }] };
+        break;
+      case 'line':
+        option = { xAxis: { type: 'category', data: correctness.map((_, i) => `Q${i+1}`) }, yAxis: { type: 'value' }, series: [{ type: 'line', data: cumulativeScore, smooth: true }] };
+        break;
+      case 'spaghetti':
+        option = { xAxis: { type: 'category', data: correctness.map((_, i) => `Q${i+1}`) }, yAxis: { type: 'value', max: 100 }, series: [
+          { type: 'line', data: correctness.map(c => c*100), name: 'Правильность' }, 
+          { type: 'line', data: cumulativeScore.map(s => Math.round((s/(totalQuestions))*100)), name: 'Накопленный %' }
+        ]};
+        break;
+      case 'boxplot':
+        option = { series: [{ type: 'boxplot', data: [[0, incorrectCount/2, totalQuestions/2, correctCount/2, totalQuestions]] }] };
+        break;
+      case 'network':
+        option = { series: [{ type: 'graph', layout: 'force', force: { repulsion: 100 }, data: correctness.map((c, i) => ({ name: `Q${i+1}`, symbolSize: 20, category: c })), links: correctness.map((_, i) => ({ source: `Q${i+1}`, target: i < correctness.length-1 ? `Q${i+2}` : `Q1` })) }] };
+        break;
+      case 'nightingale':
+        option = { series: [{ type: 'pie', radius: ['10%', '70%'], roseType: 'area', data: [{ value: correctCount, name: 'Правильно' }, { value: incorrectCount, name: 'Неправильно' }] }] };
+        break;
+      case 'streamgraph':
+        option = { xAxis: { type: 'category', data: correctness.map((_, i) => `Q${i+1}`) }, yAxis: { type: 'value' }, series: [
+          { type: 'line', stack: 'total', areaStyle: {}, data: cumulativeScore, name: 'Правильно' },
+          { type: 'line', stack: 'total', areaStyle: {}, data: correctness.map(c => c === 0 ? 1 : 0), name: 'Ошибки' }
+        ]};
+        break;
+    }
+    currentChart.setOption(option);
+  }
+
+  fetchResults();
 </script>
-</body></html>
+</body>
+</html>
