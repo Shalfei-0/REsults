@@ -15,13 +15,13 @@
     --accent: #ff8c32; --accent-glow: 0 0 30px rgba(255, 140, 50, 0.45);
     --text-primary: #e8e8f0; --text-secondary: rgba(232, 232, 240, 0.6);
     --font-main: 'Nunito', sans-serif; --font-heading: 'Comfortaa', cursive;
+    --correct: #2ecc71; --incorrect: #ff6b6b;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); background-image: radial-gradient(circle at 50% 0%, var(--bg2) 0%, var(--bg) 60%); color: var(--text-primary); font-family: var(--font-main); min-height: 100vh; padding: 40px 20px; }
   .container { max-width: 1000px; margin: 0 auto; }
-  header { text-align: center; margin-bottom: 40px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
-  .fox-logo { width: 120px; height: auto; filter: drop-shadow(0 0 15px var(--accent-glow)); }
-  h1 { font-family: var(--font-heading); font-size: 2.5rem; background: linear-gradient(135deg, #fff 10%, var(--accent) 50%, #ffb380 90%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  header { text-align: center; margin-bottom: 40px; }
+  h1 { font-family: var(--font-heading); font-size: 2.5rem; background: linear-gradient(135deg, #fff 10%, var(--accent) 50%, #ffb380 90%); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 10px; }
   .sub { color: var(--text-secondary); font-size: 1.1rem; }
   .controls { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
   .btn { padding: 10px 20px; border-radius: 30px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; font-family: var(--font-main); font-weight: 700; transition: 0.3s; }
@@ -35,8 +35,27 @@
   .test-score { font-weight: 700; background: rgba(255,140,50,0.1); padding: 4px 10px; border-radius: 12px; font-size: 0.9rem; }
   .info-row { margin-bottom: 8px; font-size: 0.95rem; }
   .info-label { color: var(--text-secondary); margin-right: 5px; }
-  .stats-btn { margin-top: 15px; background: rgba(255,140,50,0.1); border: 1px solid var(--accent); color: var(--accent); padding: 10px 15px; border-radius: 12px; cursor: pointer; width: 100%; font-weight: 700; transition: 0.3s; }
-  .stats-btn:hover { background: var(--accent); color: #0a0a0f; }
+  
+  .btn-group-card { display: flex; gap: 10px; margin-top: 15px; }
+  .card-btn { flex: 1; background: rgba(255,140,50,0.1); border: 1px solid var(--accent); color: var(--accent); padding: 10px 15px; border-radius: 12px; cursor: pointer; font-weight: 700; transition: 0.3s; font-size: 0.9rem; }
+  .card-btn:hover { background: var(--accent); color: #0a0a0f; }
+  .card-btn.ans-btn { background: rgba(100, 181, 246, 0.1); border-color: #64b5f6; color: #64b5f6; }
+  .card-btn.ans-btn:hover { background: #64b5f6; color: #0a1128; }
+  
+  /* Блок с вопросами и ответами */
+  .answers-box { display: none; margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 12px; font-size: 0.95rem; max-height: 500px; overflow-y: auto; border: 1px solid var(--border-subtle); }
+  .answers-box.active { display: block; }
+  .qa-item { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--border-subtle); }
+  .qa-item.correct-item { border-left-color: var(--correct); }
+  .qa-item.incorrect-item { border-left-color: var(--incorrect); }
+  .qa-q { font-weight: 700; color: var(--text-primary); margin-bottom: 12px; font-size: 1.05rem; }
+  .qa-row { display: flex; gap: 10px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .qa-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .qa-label { color: var(--text-secondary); font-weight: 600; min-width: 140px; font-size: 0.9rem; }
+  .qa-val { flex: 1; word-break: break-word; line-height: 1.5; }
+  .qa-user.correct { color: var(--correct); }
+  .qa-user.incorrect { color: var(--incorrect); }
+  .qa-correct { color: var(--correct); }
   
   /* Модальное окно статистики */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
@@ -57,9 +76,8 @@
 <body>
   <div class="container">
     <header>
-      <img src="golden_fox.png" alt="Золотая Лиса" class="fox-logo">
       <h1>📂 Архив Результатов</h1>
-      <p class="sub">Данные из таблиц Лисьего Сада</p>
+      <p class="sub">Подробный разбор ответов учеников</p>
     </header>
     <div class="controls">
       <button class="btn" onclick="fetchResults()">🔄 Обновить данные</button>
@@ -104,7 +122,7 @@
   </div>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmbw_-MYraqUsSp452jWfdf1tPOX7TNrGR_Gm8JcBO_DGzODjv35ybwq9nIGDqK4TWDw/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyattrqXMif5IBzSrqNii5oXpNGgGFWjWjllFkK1YTPAz-X2UQ7ZH4Z6jgvtYBeFj-CAw/exec';
   const SECRET_KEY = 'fox_secret_2026';
   let currentChart = null;
   let currentData = null;
@@ -131,13 +149,14 @@
   function fetchResults() {
     const container = document.getElementById('results-container');
     container.innerHTML = '<div class="loader">Загрузка данных...</div>';
+
     fetch(`${SCRIPT_URL}?key=${SECRET_KEY}`)
       .then(res => res.json())
       .then(data => {
         if (data.error) throw new Error(data.error);
         if (!data || data.length === 0) { container.innerHTML = '<div class="loader">Пока нет результатов 🦊</div>'; return; }
         allResults = data.sort((a, b) => new Date(b[0]) - new Date(a[0]));
-        
+
         container.innerHTML = allResults.map((row, i) => {
           const [dateStr, fio, email, testTitle, scoreStr, answersJson] = row;
           const date = new Date(dateStr).toLocaleString('ru-RU');
@@ -150,12 +169,44 @@
               <div class="info-row"><span class="info-label">👤 Имя:</span> ${fio || 'Аноним'}</div>
               <div class="info-row"><span class="info-label">✉️ Email:</span> ${email || 'Не указан'}</div>
               <div class="info-row"><span class="info-label">🕒 Дата:</span> ${date}</div>
-              <button class="stats-btn" onclick="showStats(${i})">📊 Показать статистику</button>
+              <div class="btn-group-card">
+                <button class="card-btn" onclick="showStats(${i})">📊 Статистика</button>
+                <button class="card-btn ans-btn" onclick="toggleAnswers(${i})">📝 Вопросы и ответы</button>
+              </div>
+              <div class="answers-box" id="answers-${i}">${getAnswersHtml(answersJson)}</div>
             </div>
           `;
         }).join('');
       })
       .catch(err => { container.innerHTML = `<div class="loader" style="color: #ff6b6b;">Ошибка: ${err.message}</div>`; });
+  }
+
+  function getAnswersHtml(answersJson) {
+    try {
+      const answers = JSON.parse(answersJson);
+      if (Array.isArray(answers) && answers.length > 0 && typeof answers[0] === 'object' && answers[0].question) {
+        return answers.map((a, idx) => {
+          const isCorrectClass = a.isCorrect ? 'correct' : 'incorrect';
+          const icon = a.isCorrect ? '✅' : '❌';
+          return `
+            <div class="qa-item ${isCorrectClass}-item">
+              <div class="qa-q">${idx + 1}. ${a.question}</div>
+              <div class="qa-row">
+                <span class="qa-label">Ответ ученика: ${icon}</span>
+                <span class="qa-val qa-user ${isCorrectClass}">${a.userAnswer}</span>
+              </div>
+              ${!a.isCorrect ? `<div class="qa-row"><span class="qa-label">Правильный ответ:</span><span class="qa-val qa-correct">${a.correctAnswer}</span></div>` : ''}
+            </div>
+          `;
+        }).join('');
+      } else {
+        return `<div class="qa-item"><pre style="white-space: pre-wrap;">${JSON.stringify(answers, null, 2)}</pre></div>`;
+      }
+    } catch(e) { return `<div class="qa-item">${answersJson}</div>`; }
+  }
+
+  function toggleAnswers(id) {
+    document.getElementById(`answers-${id}`).classList.toggle('active');
   }
 
   function showStats(index) {
@@ -183,11 +234,7 @@
     try { answers = JSON.parse(currentData[5]); } catch(e) {}
     if (!Array.isArray(answers)) answers = [];
 
-    // Подготовка данных
-    const correctness = answers.map(a => {
-      if (typeof a === 'object' && a !== null) return a.answer === a.correct ? 1 : 0;
-      return typeof a === 'number' ? (a === 1 ? 1 : 0) : 0;
-    });
+    const correctness = answers.map(a => (typeof a === 'object' && a !== null) ? (a.isCorrect ? 1 : 0) : (typeof a === 'number' ? (a === 1 ? 1 : 0) : 0));
     
     let cumulative = 0;
     const cumulativeScore = correctness.map(c => cumulative += c);
@@ -200,13 +247,7 @@
 
     switch(type) {
       case 'radar':
-        option = {
-          radar: { indicator: [
-            { name: 'Точность', max: 100 }, { name: 'Полнота', max: 100 }, 
-            { name: 'Активность', max: 100 }, { name: 'Усердие', max: 100 }, { name: 'Успех', max: 100 }
-          ]},
-          series: [{ type: 'radar', data: [{ value: [pct, 100, 80, 90, pct], name: 'Профиль' }], areaStyle: {} }]
-        };
+        option = { radar: { indicator: [{ name: 'Точность', max: 100 }, { name: 'Полнота', max: 100 }, { name: 'Активность', max: 100 }, { name: 'Усердие', max: 100 }, { name: 'Успех', max: 100 }] }, series: [{ type: 'radar', data: [{ value: [pct, 100, 80, 90, pct], name: 'Профиль' }], areaStyle: {} }] };
         break;
       case 'waterfall':
         option = { xAxis: { type: 'category', data: correctness.map((_, i) => `Q${i+1}`) }, yAxis: { type: 'value' }, series: [{ type: 'bar', data: cumulativeScore, itemStyle: { color: '#ff8c32' } }] };
@@ -236,10 +277,7 @@
         option = { xAxis: { type: 'category', data: correctness.map((_, i) => `Q${i+1}`) }, yAxis: { type: 'value' }, series: [{ type: 'line', data: cumulativeScore, smooth: true }] };
         break;
       case 'spaghetti':
-        option = { xAxis: { type: 'category', data: correctness.map((_, i) => `Q${i+1}`) }, yAxis: { type: 'value', max: 100 }, series: [
-          { type: 'line', data: correctness.map(c => c*100), name: 'Правильность' }, 
-          { type: 'line', data: cumulativeScore.map(s => Math.round((s/(totalQuestions))*100)), name: 'Накопленный %' }
-        ]};
+        option = { xAxis: { type: 'category', data: correctness.map((_, i) => `Q${i+1}`) }, yAxis: { type: 'value', max: 100 }, series: [{ type: 'line', data: correctness.map(c => c*100), name: 'Правильность' }, { type: 'line', data: cumulativeScore.map(s => Math.round((s/(totalQuestions))*100)), name: 'Накопленный %' }] };
         break;
       case 'boxplot':
         option = { series: [{ type: 'boxplot', data: [[0, incorrectCount/2, totalQuestions/2, correctCount/2, totalQuestions]] }] };
@@ -251,10 +289,7 @@
         option = { series: [{ type: 'pie', radius: ['10%', '70%'], roseType: 'area', data: [{ value: correctCount, name: 'Правильно' }, { value: incorrectCount, name: 'Неправильно' }] }] };
         break;
       case 'streamgraph':
-        option = { xAxis: { type: 'category', data: correctness.map((_, i) => `Q${i+1}`) }, yAxis: { type: 'value' }, series: [
-          { type: 'line', stack: 'total', areaStyle: {}, data: cumulativeScore, name: 'Правильно' },
-          { type: 'line', stack: 'total', areaStyle: {}, data: correctness.map(c => c === 0 ? 1 : 0), name: 'Ошибки' }
-        ]};
+        option = { xAxis: { type: 'category', data: correctness.map((_, i) => `Q${i+1}`) }, yAxis: { type: 'value' }, series: [{ type: 'line', stack: 'total', areaStyle: {}, data: cumulativeScore, name: 'Правильно' }, { type: 'line', stack: 'total', areaStyle: {}, data: correctness.map(c => c === 0 ? 1 : 0), name: 'Ошибки' }] };
         break;
     }
     currentChart.setOption(option);
